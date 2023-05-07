@@ -1,16 +1,40 @@
 const TelegramApi = require('node-telegram-bot-api')
-
 const token = '5918467905:AAHXL68CbUcGKG-wg75j-r1NExgBCDBLKTI'
+const sequelize = require('./db')
+const UserModel = require('./models')
 
 const bot = new TelegramApi(token, {polling: true})
 
-bot.on('message', msg => {
-    const text = msg.text
-    const chatId = msg.chat.id
-
-    if (text === '/start'){
-        bot.sendMessage(chatId, 'How do u do fellow kids?')
+const start = async () => {
+    //db connection
+    try {
+        await sequelize.authenticate()
+        await sequelize.sync()
+    } catch (error) {
+        console.log('Connection refused', error)
     }
-    //bot.sendMessage(chatId, 'Я покажу кто самый хороший человек')
-})
 
+    bot.on('message', async msg => {
+        const text = msg.text
+        const userId = msg.from.id
+        newUserId = userId.toString()
+
+        try {
+            if (text === '/start'){
+                const user = await UserModel.findOne({where: {userId: newUserId}})
+                console.log(user)
+    
+                if (!user){
+                    await UserModel.create({userId: newUserId})
+                    bot.sendMessage(msg.chat.id, 'Welcome!')
+                } else {
+                    bot.sendMessage(msg.chat.id, 'U r alredy in the game!')
+                }
+            }
+        } catch (error) {
+            return bot.sendMessage(msg.chat.id, 'Ooops...')
+        }
+    })
+}
+
+start()
