@@ -1,11 +1,14 @@
 const TelegramApi = require('node-telegram-bot-api')
+const Hogan = require('hogan.js')
 const token = '5918467905:AAHXL68CbUcGKG-wg75j-r1NExgBCDBLKTI'
 const sequelize = require('./db')
 const TgModel = require('./models')
+const fs = require('fs')
 
 const bot = new TelegramApi(token, {polling: true})
 
 const start = async () => {
+
     //_____DB CONNECTION_____//
     try {
         await sequelize.authenticate()
@@ -20,12 +23,23 @@ const start = async () => {
         const userId = (msg.from.id).toString()
         const userName = (msg.from.first_name).toString()
         const chatType = (msg.chat.type).toString()
-        const groupId = (msg.chat.id).toString()
-        const groupName = (msg.chat.title).toString()
+
+        //console.log(msg)
+
+        if (text === '/rules'){
+
+            //_____EXAMPLE OF PARSING TEMPLATE FILE_____//
+            var data = {
+                screenName: "dhg",
+            };
+            const readFile = fs.readFileSync('./templates/rulesTemplate.txt', 'utf-8')
+            const templateFile = Hogan.compile(readFile)
+            const rulesTemplateFile = templateFile.render();
+
+            bot.sendMessage(msg.chat.id, rulesTemplateFile, { parse_mode: 'Markdown' })
+        }
 
         if (text === '/registration'){
-
-            //console.log(msg)
 
             //_____CHECK USER EXIST_____//
             const user = await TgModel.User.findOne({
@@ -47,6 +61,9 @@ const start = async () => {
 
             //_____STEPS FOR GROUP CHAT ONLY_____//
             if (chatType === 'supergroup'){
+
+                const groupId = (msg.chat.id).toString()
+                const groupName = (msg.chat.title).toString()
 
                 //_____CHECK GROUP EXIST_____//
                 const group = await TgModel.Group.findOne({
@@ -83,34 +100,43 @@ const start = async () => {
             }
         }
 
+        
         if (text === '/niceFellowOfDay'){
 
-            //_____SEARCHING ALL USERS IN GROUP_____//
-            const usersInGroup = await TgModel.Group.findAndCountAll({
-                include: TgModel.User,
-                where: {
-                    tgGroupId: groupId
-                }
-            })
+            if (chatType === 'supergroup'){
 
-            usersInGroupJSON = JSON.stringify(usersInGroup, null, 2)
-            usersInGroupPARSE = JSON.parse(usersInGroupJSON)
-            numberOfUsers = usersInGroupPARSE.count
+                const groupId = (msg.chat.id).toString()
 
-            //_____GETTING RANDOM USER_ID_____//
-            const randomNumber = Math.floor(Math.random() * numberOfUsers)
-            randomUserId = usersInGroupPARSE.rows[0].Users[randomNumber].tgUserId
+                //_____SEARCHING ALL USERS IN GROUP_____//
+                const usersInGroup = await TgModel.Group.findAndCountAll({
+                    include: TgModel.User,
+                    where: {
+                        tgGroupId: groupId
+                    }
+                })
+    
+                usersInGroupJSON = JSON.stringify(usersInGroup, null, 2)
+                usersInGroupPARSE = JSON.parse(usersInGroupJSON)
+                numberOfUsers = usersInGroupPARSE.count
+    
+                //_____GETTING RANDOM USER_ID_____//
+                const randomNumber = Math.floor(Math.random() * numberOfUsers)
+                randomUserId = usersInGroupPARSE.rows[0].Users[randomNumber].tgUserId
+    
+                //_____INCREMENT NICEFELLOWCOUNT FOR RANDOM USER_____//
+                const user = await TgModel.User.findOne({
+                    where: {
+                        tgUserId: randomUserId
+                    }
+                })
+                incrementNiceFellowCount = await user.increment('niceFellowCount')
+    
+                bot.sendMessage(msg.chat.id, `Nice fellow of day - ${user.tgUserName}`)
+                
+                return
+            }
 
-            //_____INCREMENT NICEFELLOWCOUNT FOR RANDOM USER_____//
-            const user = await TgModel.User.findOne({
-                where: {
-                    tgUserId: randomUserId
-                }
-            })
-            incrementNiceFellowCount = await user.increment('niceFellowCount')
-
-            bot.sendMessage(msg.chat.id, `Nice fellow of day - ${user.tgUserName}`)
-
+            bot.sendMessage(msg.chat.id, `For group chats only`)
         }
 
 

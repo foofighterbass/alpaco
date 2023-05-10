@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "hogan.js": "^3.0.2",
     "node-telegram-bot-api": "^0.61.0",
     "nodemon": "^2.0.22",
     "pg": "^8.10.0",
