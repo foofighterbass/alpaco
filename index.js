@@ -23,7 +23,7 @@ const start = async () => {
         const groupId = (msg.chat.id).toString()
         const groupName = (msg.chat.title).toString()
 
-        if (text === '/start'){
+        if (text === '/registration'){
 
             //console.log(msg)
 
@@ -76,11 +76,41 @@ const start = async () => {
 
                 //_____ADD USER TO GROUP_____//
                 if (user){
-                    console.log(JSON.stringify(user, null, 2))
+                    //console.log(JSON.stringify(user, null, 2))
                     await user.addGroup(checkGroup)
                     bot.sendMessage(msg.chat.id, 'User added to group')
                 }
             }
+        }
+
+        if (text === '/niceFellowOfDay'){
+
+            //_____SEARCHING ALL USERS IN GROUP_____//
+            const usersInGroup = await TgModel.Group.findAndCountAll({
+                include: TgModel.User,
+                where: {
+                    tgGroupId: groupId
+                }
+            })
+
+            usersInGroupJSON = JSON.stringify(usersInGroup, null, 2)
+            usersInGroupPARSE = JSON.parse(usersInGroupJSON)
+            numberOfUsers = usersInGroupPARSE.count
+
+            //_____GETTING RANDOM USER_ID_____//
+            const randomNumber = Math.floor(Math.random() * numberOfUsers)
+            randomUserId = usersInGroupPARSE.rows[0].Users[randomNumber].tgUserId
+
+            //_____INCREMENT NICEFELLOWCOUNT FOR RANDOM USER_____//
+            const user = await TgModel.User.findOne({
+                where: {
+                    tgUserId: randomUserId
+                }
+            })
+            incrementNiceFellowCount = await user.increment('niceFellowCount')
+
+            bot.sendMessage(msg.chat.id, `Nice fellow of day - ${user.tgUserName}`)
+
         }
 
 
