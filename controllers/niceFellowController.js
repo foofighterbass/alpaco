@@ -16,6 +16,14 @@ const niceFellowStart = async () => {
     } catch (error) {
         console.log('Connection refused', error)
     }
+
+    //_____SET COMMAND FOR BOT USAGE_____//
+    bot.setMyCommands([
+        {command: '/start', description: 'Запустить бота'},
+        {command: '/nicerules', description: 'Правила игры (обязательно к прочтению!)'},
+        {command: '/nicereg', description: 'Зарегистрироваться в игре'},
+        {command: '/nice', description: 'Запуск розыгрыша "Хорошего человека дня"'},
+    ])
     
     //_____LISTNER_____//
     bot.on('message', async msg => {
@@ -24,13 +32,24 @@ const niceFellowStart = async () => {
         const userName = (msg.from.first_name).toString()
         const chatType = (msg.chat.type).toString()
 
-        //console.log(msg)
+        //console.log(chatType)
 
-        if (text === '/rules'){
-
-            //_____EXAMPLE OF PARSING TEMPLATE FILE_____//
+        //_____ACTION ON "/start" MESSAGE_____//
+        if (text === '/start'){
             var data = {
-                screenName: "dhg",
+                userName: userName,
+            };
+            const readFile = fs.readFileSync('./templates/startTemplate.txt', 'utf-8')
+            const templateFile = Hogan.compile(readFile)
+            const startTemplateFile = templateFile.render(data);
+
+            bot.sendMessage(msg.chat.id, startTemplateFile, { parse_mode: 'Markdown' })
+        }
+
+        //_____ACTION ON "/nicerules" MESSAGE_____//
+        if (text === '/nicerules'){
+            var data = {
+                //userName: userName,
             };
             const readFile = fs.readFileSync('./templates/rulesTemplate.txt', 'utf-8')
             const templateFile = Hogan.compile(readFile)
@@ -39,7 +58,8 @@ const niceFellowStart = async () => {
             bot.sendMessage(msg.chat.id, rulesTemplateFile, { parse_mode: 'Markdown' })
         }
 
-        if (text === '/registration'){
+        //_____ACTION ON "/nicereg" MESSAGE_____//
+        if (text === '/nicereg'){
 
             //_____CHECK USER EXIST_____//
             const user = await TgModel.User.findOne({
@@ -54,9 +74,9 @@ const niceFellowStart = async () => {
                     tgUserId: userId,
                     tgUserName: userName
                 })
-                bot.sendMessage(msg.chat.id, 'Welcome!')
+                bot.sendMessage(msg.chat.id, 'Добро пожаловать!')
             } else {
-                bot.sendMessage(msg.chat.id, 'U r alredy in the game!')
+                bot.sendMessage(msg.chat.id, 'Ты уже в игре!')
             }
 
             //_____STEPS FOR GROUP CHAT ONLY_____//
@@ -76,9 +96,6 @@ const niceFellowStart = async () => {
                         tgGroupId: groupId,
                         tgGroupName: groupName
                     })
-                    bot.sendMessage(msg.chat.id, 'Group registred!')
-                } else {
-                    bot.sendMessage(msg.chat.id, 'Group already in game!')
                 }
 
                 //_____KOSTYL FOR ADDING USER TO GROUP (NEED TO CREATE BETTER SOLUTION)_____//
@@ -93,15 +110,13 @@ const niceFellowStart = async () => {
 
                 //_____ADD USER TO GROUP_____//
                 if (user){
-                    //console.log(JSON.stringify(user, null, 2))
                     await user.addGroup(checkGroup)
-                    bot.sendMessage(msg.chat.id, 'User added to group')
                 }
             }
         }
 
-        
-        if (text === '/niceFellowOfDay'){
+        //_____ACTION ON "/nice" MESSAGE_____//
+        if (text === '/nice'){
 
             if (chatType === 'supergroup'){
 
@@ -138,7 +153,6 @@ const niceFellowStart = async () => {
 
             bot.sendMessage(msg.chat.id, `For group chats only`)
         }
-
 
     })
 }

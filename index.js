@@ -1,4 +1,4 @@
-const NiceFellow = require('./function_modules/niceFellowModule')
+require('./controllers/niceFellowController')
 
 const start = async () => {
 
