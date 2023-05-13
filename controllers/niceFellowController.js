@@ -179,6 +179,8 @@ const niceFellowStart = async () => {
                     return
                 }
                 bot.sendMessage(msg.chat.id, `Автоматический розыгрыш не был активирован`)
+            } else {
+                bot.sendMessage(msg.chat.id, `Только для групповых чатов`)
             }
         }
 
@@ -195,10 +197,15 @@ const niceFellowStart = async () => {
 
             if ((prevNiceStart != nowDate) && (canStart === true)){
 
-                niceFellowGame()
-                prevNiceStart = h.getUTCFullYear() + '-' + h.getMonth() + '-' + h.getUTCDate()
-                alreadyStarted = true
-                canStart = false
+                let isSuccess = await niceFellowGame()
+                console.log(isSuccess)
+                if (isSuccess === 'SUCCESS') {
+
+                    prevNiceStart = h.getUTCFullYear() + '-' + h.getMonth() + '-' + h.getUTCDate()
+                    alreadyStarted = true
+                    canStart = false
+
+                }
 
             } else {
                 bot.sendMessage(msg.chat.id, `Игру можно запускать только раз в день`)
@@ -241,15 +248,15 @@ const niceFellowStart = async () => {
                     sendTime(0.04, msg, 'Машины выехали')
                     sendTime(0.07, msg, 'Так, что тут у нас?')
                     sendTime(0.11, msg, `Кто бы мог подумать, но *хороший человек дня* - ${user.tgUserName}`)
-                    return
+                    return 'SUCCESS'
                 } 
 
                 bot.sendMessage(msg.chat.id, `В игре должно быть минимум 2 человека. Зарегистрироваться - /nicereg`)
-                return
+                return 'FAILURE'
             }
             
             bot.sendMessage(msg.chat.id, `В этом чате пока еще никто не зарегистрировался в игру. Зарегистрироваться - /nicereg`)
-            return
+            return 'FAILURE'
         }
 
         
