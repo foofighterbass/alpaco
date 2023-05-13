@@ -170,14 +170,16 @@ const niceFellowStart = async () => {
         //_____ACTION ON "/nicestopauto" MESSAGE_____//
         if (text === '/nicestopauto'){
             
-            var my_job = schedule.scheduledJobs['nice'];
-            if (my_job){
-                my_job.cancel()
-                bot.sendMessage(msg.chat.id, `Автоматический розыгрыш отключен`)
-                return
-            }
-            bot.sendMessage(msg.chat.id, `Автоматический розыгрыш не был активирован`)
+            if (chatType === 'supergroup'){
 
+                var my_job = schedule.scheduledJobs['nice'];
+                if (my_job){
+                    my_job.cancel()
+                    bot.sendMessage(msg.chat.id, `Автоматический розыгрыш отключен`)
+                    return
+                }
+                bot.sendMessage(msg.chat.id, `Автоматический розыгрыш не был активирован`)
+            }
         }
 
         //_____TIME RESTRICTIONS FOR THE NICE FELLOW OF DAY GAME_____//
