@@ -34,7 +34,7 @@ const niceFellowStart = async () => {
         {command: '/start', description: 'Запустить бота'},
         {command: '/nicerules', description: 'Правила игры (обязательно к прочтению!)'},
         {command: '/nicereg', description: 'Зарегистрироваться в игре'},
-        {command: '/nice', description: 'Запуск розыгрыша "Хорошего человека дня"'},
+        {command: '/nicehaha', description: 'Запуск розыгрыша "Хорошего человека дня"'},
         {command: '/niceauto', description: 'Автоматический запуск розыгрыша "Хорошего человека дня"'},
         {command: '/nicestopauto', description: 'Остановка автоматического розыгрыша "Хорошего человека дня"'},
     ])
@@ -46,10 +46,10 @@ const niceFellowStart = async () => {
         const userName = (msg.from.first_name).toString()
         const chatType = (msg.chat.type).toString()
 
-        //console.log(msg)
+        //console.log(\/start(@.+){0,1})
 
         //_____ACTION ON "/start" MESSAGE_____//
-        if (text === '/start'){
+        if (/\/start(@.+){0,1}/.test(msg.text)){
 
             var data = {
                 userName: userName,
@@ -63,7 +63,7 @@ const niceFellowStart = async () => {
         }
 
         //_____ACTION ON "/nicerules" MESSAGE_____//
-        if (text === '/nicerules'){
+        if (/\/nicerules(@.+){0,1}/.test(msg.text)){
 
             var data = {
                 //userName: userName,
@@ -77,7 +77,7 @@ const niceFellowStart = async () => {
         }
 
         //_____ACTION ON "/nicereg" MESSAGE_____//
-        if (text === '/nicereg'){
+        if (/\/nicereg(@.+){0,1}/.test(msg.text)){
 
             //_____CHECK USER EXIST_____//
             const user = await TgModel.User.findOne({
@@ -135,7 +135,7 @@ const niceFellowStart = async () => {
 
 
         //_____ACTION ON "/nice" MESSAGE_____//
-        if (text === '/nice'){
+        if (/\/nicehaha(@.+){0,1}/.test(msg.text)){
 
             if (chatType === 'supergroup'){
 
@@ -147,7 +147,7 @@ const niceFellowStart = async () => {
         }
 
         //_____ACTION ON "/niceauto" MESSAGE_____//
-        if (text === '/niceauto'){
+        if (/\/niceauto(@.+){0,1}/.test(msg.text)){
 
             if (chatType === 'supergroup'){
 
@@ -168,7 +168,7 @@ const niceFellowStart = async () => {
         }
 
         //_____ACTION ON "/nicestopauto" MESSAGE_____//
-        if (text === '/nicestopauto'){
+        if (/\/nicestopauto(@.+){0,1}/.test(msg.text)){
             
             if (chatType === 'supergroup'){
 
@@ -227,6 +227,8 @@ const niceFellowStart = async () => {
             usersInGroupJSON = JSON.stringify(usersInGroup, null, 2)
             usersInGroupPARSE = JSON.parse(usersInGroupJSON)
             numberOfUsers = usersInGroupPARSE.count
+
+            console.log("+++++++++++++++++++++", usersInGroup)
 
             if (usersInGroup){
 
