@@ -1,5 +1,14 @@
+#команды для запуска npm приложения
 npm init -y
 npm i node-telegram-bot-api nodemon
 npm run dev
 npm install --save sequelize
 npm i pg pg-hstore
+
+#собираем контейнер
+docker build -t  alpaco-app .
+
+#создание docker сети и запуска приложений внутри нее
+docker network create mynetwork
+docker run --network=mynetwork --name alpaca-db-conteinireized -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin -e POSTGRES_DB=alpaca -d -v $HOME/db_data:/var/lib/postgresql/data postgres:13.3
+docker run --network=mynetwork --name alpaco-conteinireized -d alpaco-app
