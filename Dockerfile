@@ -1,5 +1,20 @@
-npm init -y
-npm i node-telegram-bot-api nodemon
-npm run dev
-npm install --save sequelize
-npm i pg pg-hstore
+# Указываем базовый образ
+FROM node:12
+
+# Устанавливаем рабочую директорию в контейнере
+WORKDIR /app
+
+# Копируем package.json и package-lock.json в контейнер
+COPY package*.json ./
+
+# Устанавливаем зависимости
+RUN npm install
+
+# Копируем все файлы проекта в контейнер
+COPY . .
+
+# Определяем порт, на котором будет работать приложение
+EXPOSE 3000
+
+# Запускаем команду для запуска приложения
+CMD [ "npm", "start" ]
