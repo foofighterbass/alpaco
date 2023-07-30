@@ -28,7 +28,7 @@ docker network create {network_name}
 | network_name | Network name for containers intercourse |
 
 
-### Run all necessary containers
+### Run database container
 We almost there. Lets run container with database in our docker network:
 ```sh
 docker run --network=mynetwork --name {db_container_name} -e POSTGRES_USER={db_user} -e POSTGRES_PASSWORD={db_password} -e POSTGRES_DB={db_name} -d -v $HOME/{path_for_db_mount}:/var/lib/postgresql/data postgres:13.3
@@ -41,7 +41,7 @@ docker run --network=mynetwork --name {db_container_name} -e POSTGRES_USER={db_u
 | db_name | Database name |
 | path_for_db_mount | Path, that will used for database outside from container |
 
-
+### Run application container
 Finally lets run container with our application also in docker network
 ```sh
 docker run --network=mynetwork --name {app_container_name} -d {image_name}
