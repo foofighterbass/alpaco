@@ -213,10 +213,10 @@ const niceFellowStart = async () => {
             })
 
             if (userInGroup){
-                usersInGroupJSON = JSON.stringify(usersInGroup, null, 2)
-                usersInGroupPARSE = JSON.parse(usersInGroupJSON)
+                userInGroupJSON = JSON.stringify(userInGroup, null, 2)
+                userInGroupPARSE = JSON.parse(userInGroupJSON)
 
-                const statLine = `Твоя статистика: \n${usersInGroupPARSE.tgUserName} - ${usersInGroupPARSE.niceFellowCount}`
+                const statLine = `Твоя статистика: \n${userInGroupPARSE.tgUserName} - ${userInGroupPARSE.niceFellowCount}`
                 bot.sendMessage(msg.chat.id, `${statLine}`)
             } else {
                 bot.sendMessage(msg.chat.id, `Зарегистрируйтесь в игре!`)
