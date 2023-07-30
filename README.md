@@ -41,3 +41,5 @@ Finally lets run container with our application also in docker network
 ```sh
 docker run --network=mynetwork --name alpaco-conteinireized -d alpaco-app
 ```
+
+That's all! Now you can enjoy your own app.
