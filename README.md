@@ -23,8 +23,17 @@ docker network create mynetwork
 ### Run all necessary containers
 We almost there. Lets run container with database in our docker network:
 ```sh
-docker run --network=mynetwork --name alpaca-db-conteinireized -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin -e POSTGRES_DB=alpaca -d -v $HOME/db_data:/var/lib/postgresql/data postgres:13.3
+docker run --network=mynetwork --name {db_container_name} -e POSTGRES_USER={db_user} -e POSTGRES_PASSWORD={db_password} -e POSTGRES_DB={db_name} -d -v $HOME/{path_for_db_mount}:/var/lib/postgresql/data postgres:13.3
 ```
+Variables in braces need to be edited with your own values:
+| Variable | Explaination |
+| ------ | ------ |
+| db_container_name | Container name, that will created for database |
+| db_user | Username for database |
+| db_password | Password for database |
+| db_name | Database name |
+| path_for_db_mount | Path, that will used for database outside from container |
+
 
 Finally lets run container with our application also in docker network
 ```sh
