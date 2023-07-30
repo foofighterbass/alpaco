@@ -151,38 +151,7 @@ const niceFellowStart = async () => {
         if (/\/nicestat(@.+){0,1}/.test(msg.text)){
             const groupId = (msg.chat.id).toString()
 
-            //_____SEARCHING ALL USERS IN GROUP_____//
-            const usersInGroup = await TgModel.User.findAll({
-                include: [{
-                    model: TgModel.Group,
-                    where: {
-                        tgGroupId: groupId
-                    }
-                }],
-            })
-            usersInGroupJSON = JSON.stringify(usersInGroup, null, 2)
-            usersInGroupPARSE = JSON.parse(usersInGroupJSON)
-
-            bot.sendMessage(msg.chat.id, `Топ "Хороших людей" чата: \n`)
-
-            const groupStat = ""
-
-            for (let i in usersInGroupPARSE){
-
-                const statLine = `${Number(i) + Number(1)}. ${usersInGroupPARSE[i].tgUserName} - ${usersInGroupPARSE[i].niceFellowCount}`
-
-                const a = groupStat + statLine
-                //console.log(a)
-                bot.sendMessage(msg.chat.id, `${a}`)
-            }  
-        }
-
-        //_____ACTION ON "/niceme" MESSAGE_____//
-        if (/\/niceme(@.+){0,1}/.test(msg.text)){
-            const groupId = (msg.chat.id).toString()
-
-            //_____SEARCHING ALL USERS IN GROUP_____//
-            const usersInGroup = await TgModel.User.findOne({
+            const userInGroup = await TgModel.User.findOne({
                 include: [{
                     model: TgModel.Group,
                     where: {
@@ -193,11 +162,66 @@ const niceFellowStart = async () => {
                     tgUserId: userId
                 }
             })
-            usersInGroupJSON = JSON.stringify(usersInGroup, null, 2)
-            usersInGroupPARSE = JSON.parse(usersInGroupJSON)
 
-            const statLine = `Твоя статистика: \n${usersInGroupPARSE.tgUserName} - ${usersInGroupPARSE.niceFellowCount}`
-            bot.sendMessage(msg.chat.id, `${statLine}`)
+            if (userInGroup){
+                
+                //_____SEARCHING ALL USERS IN GROUP_____//
+                const usersInGroup = await TgModel.User.findAll({
+                    include: [{
+                        model: TgModel.Group,
+                        where: {
+                            tgGroupId: groupId
+                        }
+                    }],
+                })
+                usersInGroupJSON = JSON.stringify(usersInGroup, null, 2)
+                usersInGroupPARSE = JSON.parse(usersInGroupJSON)
+
+                bot.sendMessage(msg.chat.id, `Топ "Хороших людей" чата: \n`)
+
+                const groupStat = ""
+
+                for (let i in usersInGroupPARSE){
+
+                    const statLine = `${Number(i) + Number(1)}. ${usersInGroupPARSE[i].tgUserName} - ${usersInGroupPARSE[i].niceFellowCount}`
+
+                    const a = groupStat + statLine
+                    //console.log(a)
+                    bot.sendMessage(msg.chat.id, `${a}`)
+                }
+
+            } else {
+                bot.sendMessage(msg.chat.id, `Зарегистрируйтесь в игре!`)
+            }
+
+        }
+
+        //_____ACTION ON "/niceme" MESSAGE_____//
+        if (/\/niceme(@.+){0,1}/.test(msg.text)){
+            const groupId = (msg.chat.id).toString()
+
+            const userInGroup = await TgModel.User.findOne({
+                include: [{
+                    model: TgModel.Group,
+                    where: {
+                        tgGroupId: groupId
+                    }
+                }],
+                where: {
+                    tgUserId: userId
+                }
+            })
+
+            if (userInGroup){
+                usersInGroupJSON = JSON.stringify(usersInGroup, null, 2)
+                usersInGroupPARSE = JSON.parse(usersInGroupJSON)
+
+                const statLine = `Твоя статистика: \n${usersInGroupPARSE.tgUserName} - ${usersInGroupPARSE.niceFellowCount}`
+                bot.sendMessage(msg.chat.id, `${statLine}`)
+            } else {
+                bot.sendMessage(msg.chat.id, `Зарегистрируйтесь в игре!`)
+            }
+        
         }
 
         //_____ACTION ON "/niceauto" MESSAGE_____//
