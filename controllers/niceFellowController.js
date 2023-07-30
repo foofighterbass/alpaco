@@ -1,16 +1,14 @@
 const TelegramApi = require('node-telegram-bot-api')
 const schedule = require('node-schedule');
 const Hogan = require('hogan.js')
-const token = '5918467905:AAHXL68CbUcGKG-wg75j-r1NExgBCDBLKTI'
+const vault = require('../vault')
 const sequelize = require('../db')
 const TgModel = require('../models/niceFellowModel')
 const fs = require('fs')
 
-const bot = new TelegramApi(token, {polling: true})
-
+var bot = new TelegramApi(vault.TG_API_TOKEN, {polling: true})
 var h = new Date();
 var prevNiceStart
-
 
 const niceFellowStart = async () => {
 
@@ -341,10 +339,9 @@ const niceFellowStart = async () => {
             return 'FAILURE'
         }
 
-        
     })
 }
 
 niceFellowStart()
 
-module.exports.niceFellowStart = niceFellowStart
+//module.exports.niceFellowStart = niceFellowStart

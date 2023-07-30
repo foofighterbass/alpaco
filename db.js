@@ -1,12 +1,13 @@
+const vault = require('./vault')
 const {Sequelize} = require('sequelize')
 
 module.exports = new Sequelize(
-    'alpaca',
-    'admin',
-    'admin',
+    vault.DB_NAME,
+    vault.DB_USER,
+    vault.DB_PASSWORD,
     {
-        host: 'localhost',
-        port: '1234',
-        dialect: 'postgres'
+        host: vault.DB_HOST,
+        port: vault.DB_PORT,
+        dialect: vault.DB_DIALECT
     }
 )
