@@ -34,9 +34,11 @@ const niceFellowStart = async () => {
         {command: '/start', description: 'Запустить бота'},
         {command: '/nicerules', description: 'Правила игры (обязательно к прочтению!)'},
         {command: '/nicereg', description: 'Зарегистрироваться в игре'},
-        {command: '/nicehaha', description: 'Запуск розыгрыша "Хорошего человека дня"'},
+        {command: '/nicerun', description: 'Запуск розыгрыша "Хорошего человека дня"'},
         {command: '/niceauto', description: 'Автоматический запуск розыгрыша "Хорошего человека дня"'},
         {command: '/nicestopauto', description: 'Остановка автоматического розыгрыша "Хорошего человека дня"'},
+        {command: '/nicestat', description: 'Статистика всех участников "Хорошего человека дня"'},
+        {command: '/niceme', description: 'Личная статистика участника "Хорошего человека дня"'},
     ])
     
     //_____LISTNER_____//
@@ -45,6 +47,8 @@ const niceFellowStart = async () => {
         const userId = (msg.from.id).toString()
         const userName = (msg.from.first_name).toString()
         const chatType = (msg.chat.type).toString()
+        const groupId = (msg.chat.id).toString()
+        const groupName = (msg.chat.title).toString()
 
         //console.log(\/start(@.+){0,1})
 
@@ -98,10 +102,7 @@ const niceFellowStart = async () => {
             }
 
             //_____STEPS FOR GROUP CHAT ONLY_____//
-            if (chatType === 'supergroup'){
-
-                const groupId = (msg.chat.id).toString()
-                const groupName = (msg.chat.title).toString()
+            if (chatType === 'supergroup' || chatType === 'group'){
 
                 //_____CHECK GROUP EXIST_____//
                 const group = await TgModel.Group.findOne({
@@ -135,9 +136,9 @@ const niceFellowStart = async () => {
 
 
         //_____ACTION ON "/nice" MESSAGE_____//
-        if (/\/nicehaha(@.+){0,1}/.test(msg.text)){
+        if (/\/nicerun(@.+){0,1}/.test(msg.text)){
 
-            if (chatType === 'supergroup'){
+            if (chatType === 'supergroup' || chatType === 'group'){
 
                 niceFellowGameTimeMNG()
 
@@ -146,10 +147,63 @@ const niceFellowStart = async () => {
             }
         }
 
+        //_____ACTION ON "/nicestat" MESSAGE_____//
+        if (/\/nicestat(@.+){0,1}/.test(msg.text)){
+            const groupId = (msg.chat.id).toString()
+
+            //_____SEARCHING ALL USERS IN GROUP_____//
+            const usersInGroup = await TgModel.User.findAll({
+                include: [{
+                    model: TgModel.Group,
+                    where: {
+                        tgGroupId: groupId
+                    }
+                }],
+            })
+            usersInGroupJSON = JSON.stringify(usersInGroup, null, 2)
+            usersInGroupPARSE = JSON.parse(usersInGroupJSON)
+
+            bot.sendMessage(msg.chat.id, `Топ "Хороших людей" чата: \n`)
+
+            const groupStat = ""
+
+            for (let i in usersInGroupPARSE){
+
+                const statLine = `${Number(i) + Number(1)}. ${usersInGroupPARSE[i].tgUserName} - ${usersInGroupPARSE[i].niceFellowCount}`
+
+                const a = groupStat + statLine
+                //console.log(a)
+                bot.sendMessage(msg.chat.id, `${a}`)
+            }  
+        }
+
+        //_____ACTION ON "/niceme" MESSAGE_____//
+        if (/\/niceme(@.+){0,1}/.test(msg.text)){
+            const groupId = (msg.chat.id).toString()
+
+            //_____SEARCHING ALL USERS IN GROUP_____//
+            const usersInGroup = await TgModel.User.findOne({
+                include: [{
+                    model: TgModel.Group,
+                    where: {
+                        tgGroupId: groupId
+                    }
+                }],
+                where: {
+                    tgUserId: userId
+                }
+            })
+            usersInGroupJSON = JSON.stringify(usersInGroup, null, 2)
+            usersInGroupPARSE = JSON.parse(usersInGroupJSON)
+
+            const statLine = `Твоя статистика: \n${usersInGroupPARSE.tgUserName} - ${usersInGroupPARSE.niceFellowCount}`
+            bot.sendMessage(msg.chat.id, `${statLine}`)
+        }
+
         //_____ACTION ON "/niceauto" MESSAGE_____//
         if (/\/niceauto(@.+){0,1}/.test(msg.text)){
 
-            if (chatType === 'supergroup'){
+            if (chatType === 'supergroup' || chatType === 'group'){
 
                 job = schedule.scheduleJob( 'nice', '0 8 * * *', async () => {
                     niceFellowGameTimeMNG()
@@ -170,7 +224,7 @@ const niceFellowStart = async () => {
         //_____ACTION ON "/nicestopauto" MESSAGE_____//
         if (/\/nicestopauto(@.+){0,1}/.test(msg.text)){
             
-            if (chatType === 'supergroup'){
+            if (chatType === 'supergroup' || chatType === 'group'){
 
                 var my_job = schedule.scheduledJobs['nice'];
                 if (my_job){
@@ -191,24 +245,28 @@ const niceFellowStart = async () => {
             let alreadyStarted = false
             let nowDate = h.getUTCFullYear() + '-' + h.getMonth() + '-' + h.getUTCDate()
 
-            if ((prevNiceStart != nowDate) && (alreadyStarted === false)){
-                canStart = true
-            }
+            const group = await TgModel.Group.findOne({
+                tgGroupId: groupId
+                
+            })
 
-            if ((prevNiceStart != nowDate) && (canStart === true)){
-
-                let isSuccess = await niceFellowGame()
-                console.log(isSuccess)
-                if (isSuccess === 'SUCCESS') {
-
-                    prevNiceStart = h.getUTCFullYear() + '-' + h.getMonth() + '-' + h.getUTCDate()
-                    alreadyStarted = true
-                    canStart = false
-
+            if (group){
+                if (group.lastNiceRun != nowDate){
+                    let isSuccess = await niceFellowGame()
+                    console.log(isSuccess)
+                    if (isSuccess === 'SUCCESS') {
+    
+                        prevNiceStart = h.getUTCFullYear() + '-' + h.getMonth() + '-' + h.getUTCDate()
+                        group.set({
+                            lastNiceRun: prevNiceStart,
+                        })
+                        await group.save()
+                    }
+                } else {
+                    bot.sendMessage(msg.chat.id, `Игру можно запускать только раз в день`)
                 }
-
             } else {
-                bot.sendMessage(msg.chat.id, `Игру можно запускать только раз в день`)
+                bot.sendMessage(msg.chat.id, `Никто еще не зарегистрировался в игре!`)
             }
         }
 
@@ -227,8 +285,6 @@ const niceFellowStart = async () => {
             usersInGroupJSON = JSON.stringify(usersInGroup, null, 2)
             usersInGroupPARSE = JSON.parse(usersInGroupJSON)
             numberOfUsers = usersInGroupPARSE.count
-
-            console.log("+++++++++++++++++++++", usersInGroup)
 
             if (usersInGroup){
 

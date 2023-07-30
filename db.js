@@ -5,8 +5,8 @@ module.exports = new Sequelize(
     'admin',
     'admin',
     {
-        host: 'alpaca-db-conteinireized',
-        port: '5432',
+        host: 'localhost',
+        port: '1234',
         dialect: 'postgres'
     }
 )

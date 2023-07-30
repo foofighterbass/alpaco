@@ -12,7 +12,8 @@ const User = sequelize.define('User', {
 const Group = sequelize.define('Group', {
     id: {type: DataTypes.INTEGER, primaryKey: true, unique: true, autoIncrement: true},
     tgGroupName: {type: DataTypes.STRING},
-    tgGroupId: {type: DataTypes.STRING, unique: true}
+    tgGroupId: {type: DataTypes.STRING, unique: true},
+    lastNiceRun: {type: DataTypes.STRING}
 }) 
 
 const UserGroup = sequelize.define('UserGroup', {})
