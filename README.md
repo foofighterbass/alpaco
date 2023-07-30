@@ -13,12 +13,14 @@ In this repository we already have Dockerfile to build container with our applic
 ```sh
 docker build -t  alpaco-app .
 ```
+---
 
 ### Create docker network
 We won't use docker-compose or k8s for orchestration our containers. But we still need to connect them with each other. So, lets create docker network:
 ```sh
 docker network create mynetwork
 ```
+---
 
 ### Run all necessary containers
 We almost there. Lets run container with database in our docker network:
