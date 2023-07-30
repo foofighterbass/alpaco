@@ -2,7 +2,9 @@
 ---
 
 ## Prerequisites
-You have two ways to install "Nice Fellow of Day" application: using docker or installing node.js and postgresql manually. If you want to use docker, you need to install it on your machine. 
+You have two ways to install **"Nice Fellow of Day"** application: using docker or installing node.js and postgresql manually. If you want to use docker, you need to install it on your machine.
+
+In both cases you need to fulfill `vault.js` file with your own credentials for database and telegram bot token
 
 ## Installation using docker
 
@@ -28,5 +30,3 @@ Finally lets run container with our application also in docker network
 ```sh
 docker run --network=mynetwork --name alpaco-conteinireized -d alpaco-app
 ```
-
-
