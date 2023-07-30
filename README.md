@@ -52,4 +52,4 @@ docker run --network=mynetwork --name {app_container_name} -d {image_name}
 | image_name | Image name, that will created for application |
 
 
-That's all! Now you can enjoy your own app.
+**That's all! Now you can enjoy your own app.**
