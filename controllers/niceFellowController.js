@@ -298,5 +298,3 @@ const niceFellowStart = async () => {
 }
 
 niceFellowStart()
-
-//module.exports.niceFellowStart = niceFellowStart
