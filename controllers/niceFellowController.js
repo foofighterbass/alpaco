@@ -9,19 +9,16 @@ const fs = require('fs')
  //_____GLOBAL VARIABLES_____//
 var bot = new TelegramApi(vault.TG_API_TOKEN, {polling: true})
 var h = new Date();
-var prevNiceStart
 
- //_____DB CONNECTION_____//
-async function databaseConnection(){
+const niceFellowStart = async () => {
+
+    //_____DB CONNECTION_____//
     try {
         await sequelize.authenticate()
         await sequelize.sync()
     } catch (error) {
         console.log('Connection refused', error)
     }
-}
-
-const niceFellowStart = async () => {
 
     //_____SET COMMAND FOR BOT USAGE_____//
     bot.setMyCommands([
@@ -45,6 +42,8 @@ const niceFellowStart = async () => {
         const groupId = (msg.chat.id).toString()
         const groupName = (msg.chat.title).toString()
 
+        //console.log(msg.chat)
+
         //_____CHECK USER IN DB_____//
         const userInDB = await TgModel.User.findOne({
             where: {
@@ -54,7 +53,9 @@ const niceFellowStart = async () => {
 
         //_____CHECK GROUP IN DB_____//
         const groupInDB = await TgModel.Group.findOne({
-            tgGroupId: groupId
+            where:{
+                tgGroupId: groupId
+            }
         })
 
          //_____CHECK GROUP CONTAINS USER____//
@@ -114,7 +115,9 @@ const niceFellowStart = async () => {
             if (chatType === 'supergroup' || chatType === 'group'){
 
                 //_____CREATE GROUP IF NOT EXIST_____//
+                //console.log(groupInDB)
                 if (!groupInDB){
+                    
                     await TgModel.Group.create({
                         tgGroupId: groupId,
                         tgGroupName: groupName
@@ -233,12 +236,12 @@ const niceFellowStart = async () => {
                     var isSuccess = await niceFellowGame()
                     console.log(isSuccess)
                     if (isSuccess === 'SUCCESS') {
-    
-                        prevNiceStart = h.getUTCFullYear() + '-' + h.getMonth() + '-' + h.getUTCDate()
-                        groupInDB.set({
-                            lastNiceRun: prevNiceStart,
+                        
+                        groupInDB.update({
+                            lastNiceRun: nowDate,
                         })
-                        await groupInDB.save()
+                        
+                        //await groupInDB.save() 
                     }
                 } else {
                     bot.sendMessage(msg.chat.id, `Игру можно запускать только раз в день`)
