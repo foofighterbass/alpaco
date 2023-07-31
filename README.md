@@ -13,8 +13,8 @@ In this repository we already have Dockerfile to build container with our applic
 ```sh
 docker build -t {image_name} .
 ```
-| Variable | Explaination |
-| ------ | ------ |
+| Variable   | Explaination                                  |
+| ------     | ------                                        |
 | image_name | Image name, that will created for application |
 
 
@@ -23,8 +23,8 @@ We won't use docker-compose or k8s for orchestration our containers. But we stil
 ```sh
 docker network create {network_name}
 ```
-| Variable | Explaination |
-| ------ | ------ |
+| Variable     | Explaination                            |
+| ------       | ------                                  |
 | network_name | Network name for containers intercourse |
 
 
@@ -42,16 +42,17 @@ docker run --network={network_name} --name {db_container_name} -e POSTGRES_USER=
 | db_name           | Database name                                            |
 | path_for_db_mount | Path, that will used for database outside from container |
 
+
 ### Run application container
 Finally lets run container with our application also in docker network
 ```sh
 docker run --network={network_name} --name {app_container_name} -d {image_name}
 ```
-| Variable | Explaination |
-| ------ | ------ |
-| network_name | Network name for containers intercourse |
+| Variable           | Explaination                                      |
+| ------             | ------                                            |
+| network_name       | Network name for containers intercourse           |
 | app_container_name | Container name, that will created for application |
-| image_name | Image name, that will created for application |
+| image_name         | Image name, that will created for application     |
 
 
 **That's all! Now you can enjoy your own app.**
