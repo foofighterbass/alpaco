@@ -33,13 +33,13 @@ We almost there. Lets run container with database in our docker network:
 ```sh
 docker run --network={network_name} --name {db_container_name} -e POSTGRES_USER={db_user} -e POSTGRES_PASSWORD={db_password} -e POSTGRES_DB={db_name} -d -v $HOME/{path_for_db_mount}:/var/lib/postgresql/data postgres:13.3
 ```
-| Variable | Explaination |
-| ------ | ------ |
-| network_name | Network name for containers intercourse |
-| db_container_name | Container name, that will created for database |
-| db_user | Username for database |
-| db_password | Password for database |
-| db_name | Database name |
+| Variable          | Explaination                                             |
+| ------            | ------                                                   |
+| network_name      | Network name for containers intercourse                  |
+| db_container_name | Container name, that will created for database           |
+| db_user           | Username for database                                    |
+| db_password       | Password for database                                    |
+| db_name           | Database name                                            |
 | path_for_db_mount | Path, that will used for database outside from container |
 
 ### Run application container
