@@ -6,22 +6,26 @@ const sequelize = require('../models/db')
 const TgModel = require('../models/niceFellowModel')
 const fs = require('fs')
 
- //_____GLOBAL VARIABLES_____//
 var bot = new TelegramApi(vault.TG_API_TOKEN, {polling: true})
 var h = new Date();
 var prevNiceStart
 
- //_____DB CONNECTION_____//
-async function databaseConnection(){
+const niceFellowStart = async () => {
+
+    //_____DB CONNECTION_____//
     try {
         await sequelize.authenticate()
         await sequelize.sync()
     } catch (error) {
         console.log('Connection refused', error)
     }
-}
 
-const niceFellowStart = async () => {
+    //_____FUNCTION FOR DELAY SEND MESSAGE_____//
+    function sendTime(time, msg, text) {
+        new schedule.scheduleJob({ start: new Date(Date.now() + Number(time) * 1000 * 60), end: new Date(new Date(Date.now() + Number(time) * 1000 * 60 + 1000)), rule: '*/1 * * * * *' }, function () {
+            bot.sendMessage(msg.chat.id, text, { parse_mode: 'Markdown' });
+        });
+    }
 
     //_____SET COMMAND FOR BOT USAGE_____//
     bot.setMyCommands([
@@ -37,39 +41,13 @@ const niceFellowStart = async () => {
     
     //_____LISTNER_____//
     bot.on('message', async msg => {
-
-        //____TG CHAT VARIABLES_____//
         const userId = (msg.from.id).toString()
         const userName = (msg.from.first_name).toString()
         const chatType = (msg.chat.type).toString()
         const groupId = (msg.chat.id).toString()
         const groupName = (msg.chat.title).toString()
 
-        //_____CHECK USER IN DB_____//
-        const userInDB = await TgModel.User.findOne({
-            where: {
-                tgUserId: userId
-            }
-        })
-
-        //_____CHECK GROUP IN DB_____//
-        const groupInDB = await TgModel.Group.findOne({
-            tgGroupId: groupId
-        })
-
-         //_____CHECK GROUP CONTAINS USER____//
-        const userInGroupDB = await TgModel.User.findOne({
-            include: [{
-                model: TgModel.Group,
-                where: {
-                    tgGroupId: groupId
-                }
-            }],
-            where: {
-                tgUserId: userId
-            }
-        })
-
+        //console.log(\/start(@.+){0,1})
 
         //_____ACTION ON "/start" MESSAGE_____//
         if (/\/start(@.+){0,1}/.test(msg.text)){
@@ -82,25 +60,35 @@ const niceFellowStart = async () => {
             const startTemplateFile = templateFile.render(data);
 
             bot.sendMessage(msg.chat.id, startTemplateFile, { parse_mode: 'Markdown' })
-        }
 
+        }
 
         //_____ACTION ON "/nicerules" MESSAGE_____//
         if (/\/nicerules(@.+){0,1}/.test(msg.text)){
 
+            var data = {
+                //userName: userName,
+            };
             const readFile = fs.readFileSync('./templates/rulesTemplate.txt', 'utf-8')
             const templateFile = Hogan.compile(readFile)
             const rulesTemplateFile = templateFile.render();
 
             bot.sendMessage(msg.chat.id, rulesTemplateFile, { parse_mode: 'Markdown' })
-        }
 
+        }
 
         //_____ACTION ON "/nicereg" MESSAGE_____//
         if (/\/nicereg(@.+){0,1}/.test(msg.text)){
 
+            //_____CHECK USER EXIST_____//
+            const user = await TgModel.User.findOne({
+                where: {
+                    tgUserId: userId
+                }
+            })
+
             //_____CREATE USER IF NOT EXIST_____//
-            if (!userInDB){
+            if (!user){
                 await TgModel.User.create({
                     tgUserId: userId,
                     tgUserName: userName
@@ -113,17 +101,32 @@ const niceFellowStart = async () => {
             //_____STEPS FOR GROUP CHAT ONLY_____//
             if (chatType === 'supergroup' || chatType === 'group'){
 
+                //_____CHECK GROUP EXIST_____//
+                const group = await TgModel.Group.findOne({
+                    tgGroupId: groupId
+                })
+
                 //_____CREATE GROUP IF NOT EXIST_____//
-                if (!groupInDB){
+                if (!group){
                     await TgModel.Group.create({
                         tgGroupId: groupId,
                         tgGroupName: groupName
                     })
                 }
 
+                //_____KOSTYL FOR ADDING USER TO GROUP (NEED TO CREATE BETTER SOLUTION)_____//
+                const user = await TgModel.User.findOne({
+                    where: {
+                        tgUserId: userId
+                    }
+                })
+                const checkGroup = await TgModel.Group.findOne({
+                    tgGroupId: groupId
+                })
+
                 //_____ADD USER TO GROUP_____//
-                if (userInDB){
-                    await userInDB.addGroup(groupInDB)
+                if (user){
+                    await user.addGroup(checkGroup)
                 }
             }
         }
@@ -131,8 +134,11 @@ const niceFellowStart = async () => {
 
         //_____ACTION ON "/nice" MESSAGE_____//
         if (/\/nicerun(@.+){0,1}/.test(msg.text)){
+
             if (chatType === 'supergroup' || chatType === 'group'){
+
                 niceFellowGameTimeMNG()
+
             } else {
                 bot.sendMessage(msg.chat.id, `Только для групповых чатов`)
             }
@@ -140,7 +146,21 @@ const niceFellowStart = async () => {
 
         //_____ACTION ON "/nicestat" MESSAGE_____//
         if (/\/nicestat(@.+){0,1}/.test(msg.text)){
-            if (userInGroupDB){
+            const groupId = (msg.chat.id).toString()
+
+            const userInGroup = await TgModel.User.findOne({
+                include: [{
+                    model: TgModel.Group,
+                    where: {
+                        tgGroupId: groupId
+                    }
+                }],
+                where: {
+                    tgUserId: userId
+                }
+            })
+
+            if (userInGroup){
                 
                 //_____SEARCHING ALL USERS IN GROUP_____//
                 const usersInGroup = await TgModel.User.findAll({
@@ -154,28 +174,43 @@ const niceFellowStart = async () => {
                 usersInGroupJSON = JSON.stringify(usersInGroup, null, 2)
                 usersInGroupPARSE = JSON.parse(usersInGroupJSON)
 
-                var groupStat = []
+                bot.sendMessage(msg.chat.id, `Топ "Хороших людей" чата: \n`)
+
+                const groupStat = ""
+
                 for (let i in usersInGroupPARSE){
-                    groupStat.push({ name: usersInGroupPARSE[i].tgUserName, amountOfPoints: usersInGroupPARSE[i].niceFellowCount })
-                }
-                groupStat.sort((a, b) => b.amountOfPoints - a.amountOfPoints);
 
-                var statOutput = ""
-                for (let i in groupStat){
-                    statOutput += `${Number(i) + Number(1)}. ${groupStat[i].name} - ${groupStat[i].amountOfPoints}\n`;
+                    const statLine = `${Number(i) + Number(1)}. ${usersInGroupPARSE[i].tgUserName} - ${usersInGroupPARSE[i].niceFellowCount}`
+
+                    const a = groupStat + statLine
+                    //console.log(a)
+                    bot.sendMessage(msg.chat.id, `${a}`)
                 }
 
-                bot.sendMessage(msg.chat.id, `*Топ лучших людей чата:* \n \n ${statOutput}`, { parse_mode: 'Markdown' })
             } else {
                 bot.sendMessage(msg.chat.id, `Зарегистрируйтесь в игре!`)
             }
+
         }
 
         //_____ACTION ON "/niceme" MESSAGE_____//
         if (/\/niceme(@.+){0,1}/.test(msg.text)){
+            const groupId = (msg.chat.id).toString()
 
-            if (userInGroupDB){
-                userInGroupJSON = JSON.stringify(userInGroupDB, null, 2)
+            const userInGroup = await TgModel.User.findOne({
+                include: [{
+                    model: TgModel.Group,
+                    where: {
+                        tgGroupId: groupId
+                    }
+                }],
+                where: {
+                    tgUserId: userId
+                }
+            })
+
+            if (userInGroup){
+                userInGroupJSON = JSON.stringify(userInGroup, null, 2)
                 userInGroupPARSE = JSON.parse(userInGroupJSON)
 
                 const statLine = `Твоя статистика: \n${userInGroupPARSE.tgUserName} - ${userInGroupPARSE.niceFellowCount}`
@@ -183,6 +218,7 @@ const niceFellowStart = async () => {
             } else {
                 bot.sendMessage(msg.chat.id, `Зарегистрируйтесь в игре!`)
             }
+        
         }
 
         //_____ACTION ON "/niceauto" MESSAGE_____//
@@ -226,19 +262,26 @@ const niceFellowStart = async () => {
         //_____TIME RESTRICTIONS FOR THE NICE FELLOW OF DAY GAME_____//
         async function niceFellowGameTimeMNG(){
 
-            var nowDate = h.getUTCFullYear() + '-' + h.getMonth() + '-' + h.getUTCDate()
+            let canStart = false
+            let alreadyStarted = false
+            let nowDate = h.getUTCFullYear() + '-' + h.getMonth() + '-' + h.getUTCDate()
 
-            if (groupInDB){
-                if (groupInDB.lastNiceRun != nowDate){
-                    var isSuccess = await niceFellowGame()
+            const group = await TgModel.Group.findOne({
+                tgGroupId: groupId
+                
+            })
+
+            if (group){
+                if (group.lastNiceRun != nowDate){
+                    let isSuccess = await niceFellowGame()
                     console.log(isSuccess)
                     if (isSuccess === 'SUCCESS') {
     
                         prevNiceStart = h.getUTCFullYear() + '-' + h.getMonth() + '-' + h.getUTCDate()
-                        groupInDB.set({
+                        group.set({
                             lastNiceRun: prevNiceStart,
                         })
-                        await groupInDB.save()
+                        await group.save()
                     }
                 } else {
                     bot.sendMessage(msg.chat.id, `Игру можно запускать только раз в день`)
@@ -250,6 +293,8 @@ const niceFellowStart = async () => {
 
         //_____LOGIC FOR THE NICE FELLOW OF DAY GAME_____//
         async function niceFellowGame() {
+
+            const groupId = (msg.chat.id).toString()
 
             //_____SEARCHING ALL USERS IN GROUP_____//
             const usersInGroup = await TgModel.Group.findAndCountAll({
@@ -271,12 +316,17 @@ const niceFellowStart = async () => {
                     randomUserId = usersInGroupPARSE.rows[0].Users[randomNumber].tgUserId
         
                     //_____INCREMENT NICEFELLOWCOUNT FOR RANDOM USER_____//
-                    incrementNiceFellowCount = await userInDB.increment('niceFellowCount')
+                    const user = await TgModel.User.findOne({
+                        where: {
+                            tgUserId: randomUserId
+                        }
+                    })
+                    incrementNiceFellowCount = await user.increment('niceFellowCount')
         
                     sendTime(0.01, msg, 'Woop-woop! That\'s the sound of da nice-police!')
                     sendTime(0.04, msg, 'Машины выехали')
                     sendTime(0.07, msg, 'Так, что тут у нас?')
-                    sendTime(0.11, msg, `Кто бы мог подумать, но *хороший человек дня* - ${userInDB.tgUserName}`)
+                    sendTime(0.11, msg, `Кто бы мог подумать, но *хороший человек дня* - ${user.tgUserName}`)
                     return 'SUCCESS'
                 } 
 
@@ -288,12 +338,6 @@ const niceFellowStart = async () => {
             return 'FAILURE'
         }
 
-        //_____FUNCTION FOR DELAY SEND MESSAGE_____//
-        function sendTime(time, msg, text) {
-            new schedule.scheduleJob({ start: new Date(Date.now() + Number(time) * 1000 * 60), end: new Date(new Date(Date.now() + Number(time) * 1000 * 60 + 1000)), rule: '*/1 * * * * *' }, function () {
-                bot.sendMessage(msg.chat.id, text, { parse_mode: 'Markdown' });
-            });
-        }
     })
 }
 

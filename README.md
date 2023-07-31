@@ -4,7 +4,7 @@
 ## Prerequisites
 You have two ways to install **"Nice Fellow of Day"** application: using docker or installing node.js and postgresql manually. If you want to use docker, you need to install it on your machine.
 
-In both cases you need to fulfill `vault.js` file with your own credentials for database and telegram bot token
+In both cases you need to fulfill `vault.js` file with your own credentials for database and telegram bot token.
 
 ## Installation using docker
 
@@ -31,7 +31,7 @@ docker network create {network_name}
 ### Run database container
 We almost there. Lets run container with database in our docker network:
 ```sh
-docker run --network={network_name} --name {db_container_name} -e POSTGRES_USER={db_user} -e POSTGRES_PASSWORD={db_password} -e POSTGRES_DB={db_name} -d -v $HOME/{path_for_db_mount}:/var/lib/postgresql/data postgres:13.3
+docker run --network={network_name} --restart=always --name {db_container_name} -e POSTGRES_USER={db_user} -e POSTGRES_PASSWORD={db_password} -e POSTGRES_DB={db_name} -d -v $HOME/{path_for_db_mount}:/var/lib/postgresql/data postgres:13.3
 ```
 | Variable          | Explaination                                             |
 | ------            | ------                                                   |
@@ -46,7 +46,7 @@ docker run --network={network_name} --name {db_container_name} -e POSTGRES_USER=
 ### Run application container
 Finally lets run container with our application also in docker network
 ```sh
-docker run --network={network_name} --name {app_container_name} -d {image_name}
+docker run --network={network_name} --restart=always --name {app_container_name} -d {image_name}
 ```
 | Variable           | Explaination                                      |
 | ------             | ------                                            |
