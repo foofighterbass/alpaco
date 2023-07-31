@@ -1,20 +1,20 @@
-# Указываем базовый образ
+# Specifying the base image
 FROM node:12
 
-# Устанавливаем рабочую директорию в контейнере
+# Installing the working directory in the container
 WORKDIR /app
 
-# Копируем package.json и package-lock.json в контейнер
+# Copying the package.json and package-lock.json to container
 COPY package*.json ./
 
-# Устанавливаем зависимости
+# Installing dependencies
 RUN npm install
 
-# Копируем все файлы проекта в контейнер
+# Copy all the project files to the container
 COPY . .
 
-# Определяем порт, на котором будет работать приложение
+# We determine the port on which the application will run
 EXPOSE 3000
 
-# Запускаем команду для запуска приложения
+# Run the command to launch the application
 CMD [ "npm", "start" ]
