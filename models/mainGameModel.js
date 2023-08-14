@@ -3,9 +3,9 @@ import { Sequelize, DataTypes } from 'sequelize'
 const DB_NAME = 'alpaca'
 const DB_USER = 'admin'
 const DB_PASSWORD = 'admin'
-const DB_HOST = 'localhost'
+const DB_HOST = 'db'
 const DB_DIALECT = 'postgres'
-const DB_PORT = '1234'
+const DB_PORT = '5432'
 
 class NiceFellowDb {
     constructor() {
