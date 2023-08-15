@@ -8,8 +8,6 @@ const user = new NiceFellowUser();
 const group = new NiceFellowGroup();
 const bot = new TelegramBot('5918467905:AAHXL68CbUcGKG-wg75j-r1NExgBCDBLKTI', {polling: true});
 
-let date = new Date();
-
 const niceFellowGameStart = async () => {
     //_____SET COMMAND FOR BOT USAGE_____//
     bot.setMyCommands([
@@ -87,6 +85,7 @@ const niceFellowGameStart = async () => {
 
             //_____ACTION ON "/nice" MESSAGE_____//
             if (/\/nicerun(@.+){0,1}/.test(msg.text)){
+                let date = new Date();
                 let lastStartDate = date.getUTCFullYear() + '-' + date.getMonth() + '-' + date.getUTCDate()
                 let thisGroup = await group.get(groupId)
                 if (thisGroup) {
