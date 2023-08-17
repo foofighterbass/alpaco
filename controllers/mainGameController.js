@@ -6,7 +6,7 @@ import Hogan from 'hogan.js'
 
 const user = new NiceFellowUser();
 const group = new NiceFellowGroup();
-const bot = new TelegramBot('5918467905:AAHXL68CbUcGKG-wg75j-r1NExgBCDBLKTI', {polling: true});
+const bot = new TelegramBot('', {polling: true});
 
 const niceFellowGameStart = async () => {
     //_____SET COMMAND FOR BOT USAGE_____//
